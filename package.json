@@ -1,0 +1,33 @@
+{
+  "name": "output-aws-kinesis",
+  "version": "1.0.0",
+  "description": "Logagent output plugin for AWS Kinesis.",
+  "main": "output-aws-kinesis.js",
+  "repository" : {
+    "type": "git",
+    "url": "https://github.com/alexandermjames/output-aws-kinesis.git"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.178.0",
+    "fast-safe-stringify": "^1.2.1",
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "kinesalite": "^1.11.6",
+    "mocha": "^4.1.0"
+  },
+  "scripts": {
+    "pretest": "(./node_modules/.bin/kinesalite --port 4567 --createStreamMs 50 > /tmp/kinesalite.log) & echo $! > /tmp/kinesalite.pid; (logagent -c ./output-aws-kinesis.yaml > /tmp/logagent.log) & echo $! > /tmp/logagent.pid;",
+    "test": "./node_modules/mocha/bin/mocha tests/**/*tests.js --reporter spec || true",
+    "posttest": "kill `cat /tmp/kinesalite.pid`; kill `cat /tmp/logagent.pid`"
+  },
+  "keywords": [
+    "AWS",
+    "Kinesis",
+    "Logagent",
+    "Sematext",
+    "Logging"
+  ],
+  "author": "Matt Alexander <matt.j.alexander@utah.edu>",
+  "license": "MIT"
+}

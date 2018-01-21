@@ -12,7 +12,9 @@ output:
     maxRetries: 3
     accessKeyId: accessKeyId
     secretAccessKey: secretAccessKey
-    endpoint: http://localhost:4567
-    maxRecords: 10
+    endpoint: https://localhost:4567
+    maxRecords: 500
     maxBytes: 5242880
-    msFlushRate: 1000
+    msFlushRate: 5000
+    partitionKey: staticPartitionKey
+    partitionKeyField: dynamicPartitionKey

@@ -4,11 +4,16 @@ Writes Logagent output to Amazon Kinesis.
 
 ## Installation
 
-Install [@sematext/logagent](https://www.npmjs.com/package/@sematext/logagent) and [output-aws-kinesis](https://www.npmjs.com/package/output-aws-kinesis) npm package:
+Install the following packages:
+
+1. [@sematext/logagent](https://www.npmjs.com/package/@sematext/logagent)
+2. [output-aws-kinesis](https://www.npmjs.com/package/output-aws-kinesis)
+3. [kinesalite](https://www.npmjs.com/package/kinesalite)
 
 ```
 npm i -g @sematext/logagent
 npm i -g output-aws-kinesis
+npm i -g kinesalite
 ```
 
 ### Configuration
@@ -19,8 +24,6 @@ options:
 
 input:
   stdin: true
-  files:
-    - /tmp/test.log
 
 output:
   kinesis:
@@ -39,5 +42,10 @@ output:
 ### Start logagent
 
 ```
-logagent --config output-aws-kineis.yaml
+logagent --config output-aws-kinesis.yaml
 ```
+
+### Upcoming Features
+
+Currently there is no way to define the partition key for Kinesis records. This is the next issue that will
+be tackled.

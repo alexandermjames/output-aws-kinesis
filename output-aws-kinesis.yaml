@@ -3,18 +3,16 @@ options:
 
 input:
   stdin: true
-  files:
-    - /tmp/test.log
 
 output:
   kinesis:
-   module: output-aws-kinesis
-   region: us-east-1
-   streamName: test
-   maxRetries: 3
-   accessKeyId: accessKeyId
-   secretAccessKey: secretAccessKey
-   endpoint: http://localhost:4567 # Local Kinesalite Instance
-   maxRecords: 500
-   maxBytes: 5242880 # 5 MB
-   msFlushRate: 1000 # 5 seconds
+    module: output-aws-kinesis
+    region: us-east-1
+    streamName: test
+    maxRetries: 3
+    accessKeyId: accessKeyId
+    secretAccessKey: secretAccessKey
+    endpoint: http://localhost:4567
+    maxRecords: 10
+    maxBytes: 5242880
+    msFlushRate: 1000

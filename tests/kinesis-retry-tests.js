@@ -81,12 +81,11 @@ describe("KinesisRetry", function() {
 
       const kinesisRetry = new KinesisRetry(options);
 
-      let records = [];
+      let batches = [];
       for (let i = 0; i < 100; i++) {
-        kinesisBuffer.write(records, data);
+        kinesisBuffer.write(batches, data);
       }
 
-      const batches = kinesisBuffer.split(records);
       batches.forEach((batch) => {
         kinesisRetry.flush(client, batch);
       });

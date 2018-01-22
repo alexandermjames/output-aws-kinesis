@@ -12,9 +12,16 @@ output:
     maxRetries: 3
     accessKeyId: accessKeyId
     secretAccessKey: secretAccessKey
-    endpoint: https://localhost:4567
+    endpoint: http://localhost:4567
     maxRecords: 500
     maxBytes: 5242880
-    msFlushRate: 5000
-    partitionKey: staticPartitionKey
-    partitionKeyField: dynamicPartitionKey
+    msFlushRate: 1000
+    defaultPartitionKey: staticPartitionKey
+    defaultPartitionKeyProperty: dynamicPartitionKey
+    logSource:
+      \/tmp\/kafka.*\.log:
+        partitionKey: staticPartitionKey
+        partitionKeyProperty: dynamicPartitionKey
+      \/tmp\/elasticsearch.*\.log:
+        partitionKey: staticPartitionKey
+        partitionKeyProperty: dynamicPartitionKey

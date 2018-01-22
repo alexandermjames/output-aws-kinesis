@@ -5,30 +5,18 @@ const log = require("../lib/log.js");
 const KinesisBuffer = require("../lib/kinesis-buffer.js");
 const Benchmark = require("benchmark");
 
+// Setup
+
 const data = {
-  message: log.stringify({
-    data: "This is an example."
-  }),
+  message: "This is an example.",
   logSource: "unknown",
   "@timestamp": new Date().toISOString()
 };
 
-let records = [];
-for (let i = 0; i < 10000; i++) {
-  records.push(data);
-}
+let logSourceData = Object.assign({}, data);
+logSourceData.logSource = "/tmp/kafka-beta.log";
 
-const splitKinesisBuffer = new KinesisBuffer({
-  maxRecords: 500,
-  maxBytes: 1024
-});
-
-const splitBenchmarkSuite = new Benchmark.Suite;
-splitBenchmarkSuite.add('KinesisBuffer#split - Less Records, More Bytes', function() {
-  splitKinesisBuffer.split(records);
-}).on('cycle', function(event) {
-  console.log(String(event.target));
-}).run({ 'async': true });
+// Test UUID default partition key
 
 const generatedKinesisBuffer = new KinesisBuffer({
   maxRecords: 500,
@@ -42,10 +30,12 @@ generatedPartitionKeySuite.add('KinesisBuffer#write - UUIDV4 PartitionKey', func
   console.log(String(event.target));
 }).run({ 'async': true });
 
+// Test static default partition key
+
 const staticKinesisBuffer = new KinesisBuffer({
   maxRecords: 500,
   maxBytes: 1024,
-  partitionKey: "partitionKey"
+  defaultPartitionKey: "partitionKey"
 });
 
 const staticPartitionKeySuite = new Benchmark.Suite;
@@ -55,15 +45,74 @@ staticPartitionKeySuite.add('KinesisBuffer#write - Static PartitionKey', functio
   console.log(String(event.target));
 }).run({ 'async': true });
 
+// Test dynamic default partition key
+
 const jsonPropertyKinesisBuffer = new KinesisBuffer({
   maxRecords: 500,
   maxBytes: 1024,
-  partitionKeyField: "data"
+  defaultPartitionKeyProperty: "message"
 });
 
 const jsonPropertyPartitionKeySuite = new Benchmark.Suite;
 jsonPropertyPartitionKeySuite.add('KinesisBuffer#write - JSON Property PartitionKey', function() {
   jsonPropertyKinesisBuffer.write([], data);
+}).on('cycle', function(event) {
+  console.log(String(event.target));
+}).run({ 'async': true });
+
+// Test UUID log source partition key
+
+const generatedLogSourceKinesisBuffer = new KinesisBuffer({
+  maxRecords: 500,
+  maxBytes: 1024,
+  logSource: {
+    "\/tmp\/kafka.*\.log": {
+
+    }
+  }
+});
+
+const generatedLogSourcePartitionKeySuite = new Benchmark.Suite;
+generatedLogSourcePartitionKeySuite.add('KinesisBuffer#write - Log Source UUIDV4 PartitionKey', function() {
+  generatedLogSourceKinesisBuffer.write([], logSourceData);
+}).on('cycle', function(event) {
+  console.log(String(event.target));
+}).run({ 'async': true });
+
+// Test static log source partition key
+
+const staticLogSourceKinesisBuffer = new KinesisBuffer({
+  maxRecords: 500,
+  maxBytes: 1024,
+  logSource: {
+    "\/tmp\/kafka.*\.log": {
+      partitionKey: "partitionKey"
+    }
+  }
+});
+
+const staticLogSourcePartitionKeySuite = new Benchmark.Suite;
+staticLogSourcePartitionKeySuite.add('KinesisBuffer#write - Log Source Static PartitionKey', function() {
+  staticLogSourceKinesisBuffer.write([], logSourceData);
+}).on('cycle', function(event) {
+  console.log(String(event.target));
+}).run({ 'async': true });
+
+// Test dynamic log source partition key
+
+const jsonPropertyLogSourceKinesisBuffer = new KinesisBuffer({
+  maxRecords: 500,
+  maxBytes: 1024,
+  logSource: {
+    "\/tmp\/kafka.*\.log": {
+      partitionKeyProperty: "message"
+    }
+  }
+});
+
+const jsonPropertyLogSourcePartitionKeySuite = new Benchmark.Suite;
+jsonPropertyLogSourcePartitionKeySuite.add('KinesisBuffer#write - Log Source JSON Property PartitionKey', function() {
+  jsonPropertyLogSourceKinesisBuffer.write([], logSourceData);
 }).on('cycle', function(event) {
   console.log(String(event.target));
 }).run({ 'async': true });

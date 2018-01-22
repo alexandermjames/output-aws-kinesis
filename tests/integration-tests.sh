@@ -12,7 +12,7 @@ STREAM_NAME="test"
 SHARD_COUNT=1
 COMMON_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CONFIG_DIRECTORY="${COMMON_PATH}/.."
-LOG_MESSAGE="{\"message\": \"This is an example\"}"
+LOG_MESSAGE="{\"message\": \"This is an example\", \"dynamicPartitionKey\": \"hello how are you\"}"
 
 # Start Kinesalite
 kinesalite --port 4567 --createStreamMs 10 &

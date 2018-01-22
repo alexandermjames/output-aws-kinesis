@@ -1,5 +1,10 @@
 "use strict";
 
+const process = require("process");
+process.on("unhandledRejection", (err) => {
+  console.error(err);
+});
+
 const AWS = require("aws-sdk");
 const KinesisBuffer = require("./lib/kinesis-buffer.js");
 const KinesisRetry = require("./lib/kinesis-retry.js");
@@ -7,13 +12,14 @@ const KinesisRetry = require("./lib/kinesis-retry.js");
 function OutputAwsKinesis(options, eventEmitter) {
   this.eventEmitter = eventEmitter;
   this.msFlushRate = typeof options.msFlushRate == "undefined" ? 60000 : options.msFlushRate;
-  this.records = [];
+  this.batches = [];
 
   let kinesisBufferOptions = {
     maxRecords: options.maxRecords,
     maxBytes: options.maxBytes,
-    partitionKeyField: options.partitionKeyField,
-    partitionKey: options.partitionKey
+    defaultPartitionKeyProperty: options.defaultPartitionKeyProperty,
+    defaultPartitionKey: options.defaultPartitionKey,
+    logSource: options.logSource
   };
 
   this.kinesisBuffer = new KinesisBuffer(kinesisBufferOptions);
@@ -54,7 +60,7 @@ function OutputAwsKinesis(options, eventEmitter) {
 }
 
 OutputAwsKinesis.prototype.eventHandler = function(record, context) {
-  this.kinesisBuffer.write(this.records, record);
+  this.kinesisBuffer.write(this.batches, record);
 }
 
 OutputAwsKinesis.prototype.start = function() {
@@ -62,10 +68,11 @@ OutputAwsKinesis.prototype.start = function() {
   if (!this.interval) {
     this.interval = setInterval((function(self) {
       return function() {
-        const batches = self.kinesisBuffer.split(self.records);
-        batches.forEach((batch) => {
+        self.batches.forEach((batch) => {
           self.kinesisRetry.flush(self.kinesisClient, batch);
         });
+
+        self.batches = [];
       }
     })(this), this.msFlushRate);
   }

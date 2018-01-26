@@ -1,8 +1,8 @@
 "use strict";
 
-const log = require("../lib/log.js");
+const log = require("./lib/log.js");
 
-const KinesisBuffer = require("../lib/kinesis-buffer.js");
+const KinesisBuffer = require("./lib/kinesis-buffer.js");
 const Benchmark = require("benchmark");
 
 // Setup

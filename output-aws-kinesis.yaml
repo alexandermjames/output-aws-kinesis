@@ -18,6 +18,7 @@ output:
     msFlushRate: 1000
     defaultPartitionKey: staticPartitionKey
     defaultPartitionKeyProperty: dynamicPartitionKey
+    sslEnabled: false
     logSource:
       \/tmp\/kafka.*\.log:
         partitionKey: staticPartitionKey

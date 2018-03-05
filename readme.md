@@ -39,6 +39,7 @@ output:
     msFlushRate: 1000
     defaultPartitionKey: staticPartitionKey
     defaultPartitionKeyProperty: dynamicPartitionKey
+    sslEnabled: true
     logSource:
       \/tmp\/kafka.*\.log:
         partitionKey: staticPartitionKey
@@ -59,6 +60,7 @@ output:
 - **msFlushRate** - The rate in milliseconds, at which to flush records to AWS Kinesis. If using files for input currently logagent uses a 60 second scan time.
 - **defaultPartitionKey** - Default statically defined partition key for AWS Kinesis record. Can be used in harmony with logSource. If logSource pattern is not found then this partition key will be used. Either this or partitionKeyProperty should be used, but not together. If used together, partitionKeyProperty will be honored.
 - **defaultPartitionKeyProperty** - Default dynamically defined partition key for AWS Kinesis record. Can be used in harmony with logSource. If logSource pattern is not found then this partition key field will be used. If supplied, the log data must be JSON parseable as this field is used to retrieve the partition key for the record.
+- **sslEnabled** - Enable ssl while communicating with AWS Kinesis. Defaults to true if undefined. Should explicitly be set to true in production environments.
 - **logSource** - Custom log source partition key allocation. This allows for different log sources to have different partition keys.
     - **logSourcePattern** - Log source pattern to match. This must be in escaped regex format e.g. /tmp/kafka*.log becomes \/tmp\/kafka*\.log and /tmp/elasticsearch.\*.log becomes \/tmp\/elasticsearch.\*\.log.
         - **partitionKey** - Statically defined partition key for AWS Kinesis record. Either this or partitionKeyProperty should be used, but not together. If used together, partitionKeyProperty will be honored first.

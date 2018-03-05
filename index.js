@@ -26,12 +26,13 @@ function OutputAwsKinesis(options, eventEmitter) {
 
   this.region = typeof options.region == "undefined" ? process.env.AWS_REGION : options.region;
   this.maxRetries = typeof options.maxRetries == "undefined" ? 3 : options.maxRetries;
+  this.sslEnabled = typeof options.sslEnabled == "undefined" ? true : options.sslEnabled;
 
   let kinesisOptions = {
     region: this.region,
     apiVersion: "2013-12-02",
     maxRetries: this.maxRetries,
-    sslEnabled: false,
+    sslEnabled: this.sslEnabled,
     retryDelayOptions: {
       base: 100
     }

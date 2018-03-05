@@ -1,6 +1,6 @@
 {
   "name": "output-aws-kinesis",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Logagent output plugin for AWS Kinesis.",
   "main": "index.js",
   "repository": {
@@ -18,7 +18,8 @@
   },
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha tests/**/*tests.js --reporter spec",
-    "benchmark": "node benchmark.js"
+    "benchmark": "node benchmark.js",
+    "integration-tests": "./tests/integration-tests.sh"
   },
   "keywords": [
     "AWS",

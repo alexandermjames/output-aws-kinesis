@@ -24,7 +24,7 @@ KINESALITE_PID=`echo $!`
 aws kinesis create-stream --region us-east-1 --stream-name $STREAM_NAME --shard-count $SHARD_COUNT --endpoint-url "http://localhost:4567"
 
 # Start Logagent
-logagent -c "${CONFIG_DIRECTORY}"/output-aws-kinesis.yaml <<< $LOG_MESSAGE &
+logagent -c "${CONFIG_DIRECTORY}"/output-aws-kinesis.yml <<< $LOG_MESSAGE &
 
 # Save PID
 LOGAGENT_PID=`echo $!`

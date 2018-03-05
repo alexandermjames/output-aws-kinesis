@@ -1,6 +1,6 @@
 {
   "name": "output-aws-kinesis",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Logagent output plugin for AWS Kinesis.",
   "main": "index.js",
   "repository": {
@@ -17,15 +17,18 @@
     "benchmark": "^2.1.4"
   },
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha tests/**/*tests.js --reporter spec",
-    "benchmark": "node benchmark.js"
+    "test": "./node_modules/mocha/bin/mocha tests/**/*tests.js -R spec",
+    "integration-test": "./tests/integration-tests.sh",
+    "benchmark-kinesis-stream": "node benchmarks/kinesis-stream-benchmark.js",
+    "benchmark-logger": "node benchmarks/logger-benchmark.js",
+    "benchmark-router": "node benchmarks/router-benchmark.js"
   },
   "keywords": [
-    "AWS",
-    "Kinesis",
-    "Logagent",
-    "Sematext",
-    "Logging"
+    "aws",
+    "kinesis",
+    "logagent",
+    "sematext",
+    "logging"
   ],
   "author": "Matt Alexander <matt.j.alexander@utah.edu>",
   "license": "MIT"

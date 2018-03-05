@@ -1,90 +1,95 @@
 "use strict";
 
-const process = require("process");
-process.on("unhandledRejection", (err) => {
-  console.error(err);
-});
+const DEBUG = false;
 
 const AWS = require("aws-sdk");
-const KinesisBuffer = require("./lib/kinesis-buffer.js");
-const KinesisRetry = require("./lib/kinesis-retry.js");
+const Logger = require("./lib/logger.js");
+const Router = require("./lib/router.js");
+const KinesisStream = require("./lib/kinesis-stream.js");
 
-function OutputAwsKinesis(options, eventEmitter) {
+const MAX_RETRIES = 3;
+
+function OutputAwsKinesis(config, eventEmitter) {
   this.eventEmitter = eventEmitter;
-  this.msFlushRate = typeof options.msFlushRate == "undefined" ? 60000 : options.msFlushRate;
-  this.batches = [];
+  this.router = new Router();
 
-  let kinesisBufferOptions = {
-    maxRecords: options.maxRecords,
-    maxBytes: options.maxBytes,
-    defaultPartitionKeyProperty: options.defaultPartitionKeyProperty,
-    defaultPartitionKey: options.defaultPartitionKey,
-    logSource: options.logSource
-  };
+  this.config = Object.assign({}, config);
+  this.logger = new Logger("OutputAwsKinesis", this.config.debug);
 
-  this.kinesisBuffer = new KinesisBuffer(kinesisBufferOptions);
+  if (typeof this.config.maxRetries !== "undefined" && (this.config.maxRetries < 0 || this.config.maxRetries > 3)) {
+    this.logger.log("WARN", {
+      message: "Max retries was not in the allowable range, [0, 3]. Defaulting to 3.",
+      maxRetries: this.config.maxRetries
+    });
 
-  this.region = typeof options.region == "undefined" ? process.env.AWS_REGION : options.region;
-  this.maxRetries = typeof options.maxRetries == "undefined" ? 3 : options.maxRetries;
+    this.config.maxRetries = MAX_RETRIES;
+  } else if (typeof this.config.maxRetries !== "undefined") {
+    this.config.maxRetries = MAX_RETRIES;
+  } else {
+    this.config.maxRetries = this.config.maxRetries || MAX_RETRIES;
+  }
 
-  let kinesisOptions = {
-    region: this.region,
+  this.config.region = this.config.region || process.env.AWS_REGION;
+  this.config.sslEnabled = typeof this.config.sslEnabled != "undefined" ? this.config.sslEnabled : true;
+
+  let kinesisClientOptions = {
     apiVersion: "2013-12-02",
-    maxRetries: this.maxRetries,
-    sslEnabled: false,
+    region: this.config.region,
+    maxRetries: this.config.maxRetries,
+    sslEnabled: this.config.sslEnabled,
     retryDelayOptions: {
       base: 100
     }
   };
 
-  if (typeof options.accessKeyId != "undefined" || process.env.AWS_ACCESS_KEY_ID) {
-    kinesisOptions.accessKeyId = options.accessKeyId || process.env.AWS_ACCESS_KEY_ID;
+  if (typeof this.config.accessKeyId != "undefined" || process.env.AWS_ACCESS_KEY_ID) {
+    kinesisClientOptions.accessKeyId = this.config.accessKeyId || process.env.AWS_ACCESS_KEY_ID;
   }
 
-  if (typeof options.secretAccessKey != "undefined" || process.env.AWS_SECRET_ACCESS_KEY) {
-    kinesisOptions.secretAccessKey = options.secretAccessKey || process.env.AWS_SECRET_ACCESS_KEY;
+  if (typeof this.config.secretAccessKey != "undefined" || process.env.AWS_SECRET_ACCESS_KEY) {
+    kinesisClientOptions.secretAccessKey = this.config.secretAccessKey || process.env.AWS_SECRET_ACCESS_KEY;
   }
 
-  if (typeof options.endpoint != "undefined") {
-    kinesisOptions.endpoint = options.endpoint;
+  if (typeof this.config.endpoint != "undefined") {
+    kinesisClientOptions.endpoint = this.config.endpoint;
   }
 
-  this.kinesisClient = new AWS.Kinesis(kinesisOptions);
+  if (this.config.streams) {
+    for (const stream of this.config.streams) {
+      const kinesisStreamOptions = {
+        partitionKey: stream.partitionKey,
+        partitionKeyProperty: stream.partitionKeyProperty,
+        maxBytes: stream.maxBytes,
+        msFlushRate: stream.msFlushRate,
+        kinesisClient: new AWS.Kinesis(kinesisClientOptions),
+        streamName: stream.streamName,
+        maxRetries: stream.maxRetries,
+        debug: this.config.debug
+      };
 
-  let kinesisRetryOptions = {
-    streamName: options.streamName,
-    maxRetries: options.maxRetries
-  };
-
-  this.kinesisRetry = new KinesisRetry(kinesisRetryOptions);
+      this.router.addStreamPatterns(new KinesisStream(kinesisStreamOptions), stream.files);
+    }
+  }
 }
 
-OutputAwsKinesis.prototype.eventHandler = function(record, context) {
-  this.kinesisBuffer.write(this.batches, record);
-}
+OutputAwsKinesis.prototype.handler = function(data, context) {
+  const streams = this.router.getRoutes(data.logSource);
+  for (const stream of streams) {
+    stream.write(data);
+  }
+};
 
 OutputAwsKinesis.prototype.start = function() {
-  this.eventEmitter.on("data.parsed", this.eventHandler.bind(this))
-  if (!this.interval) {
-    this.interval = setInterval((function(self) {
-      return function() {
-        self.batches.forEach((batch) => {
-          self.kinesisRetry.flush(self.kinesisClient, batch);
-        });
-
-        self.batches = [];
-      }
-    })(this), this.msFlushRate);
-  }
-}
+  this.eventEmitter.on("data.parsed", this.handler.bind(this));
+};
 
 OutputAwsKinesis.prototype.stop = function(cb) {
-  this.eventEmitter.removeListener("data.parsed", this.eventHandler)
-  if (this.interval) {
-    clearInterval(this.interval);
+  this.eventEmitter.removeListener("data.parsed", this.handler);
+  for (const stream of this.router.getStreams()) {
+    stream.stop();
   }
 
   cb();
-}
+};
 
 module.exports = OutputAwsKinesis;

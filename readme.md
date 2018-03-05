@@ -27,7 +27,7 @@ npm i -g kinesalite
 Execute integration tests in the following manner:
 
 ```
-npm run-script integration-test
+npm run-script integration-tests
 ```
 
 ### Configuration

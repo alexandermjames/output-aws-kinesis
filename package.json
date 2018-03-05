@@ -18,7 +18,7 @@
   },
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha tests/**/*tests.js -R spec",
-    "integration-test": "./tests/integration-tests.sh",
+    "integration-tests": "./tests/integration-tests.sh",
     "benchmark-kinesis-stream": "node benchmarks/kinesis-stream-benchmark.js",
     "benchmark-logger": "node benchmarks/logger-benchmark.js",
     "benchmark-router": "node benchmarks/router-benchmark.js"

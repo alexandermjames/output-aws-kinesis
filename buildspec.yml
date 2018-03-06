@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - npm install @sematext/logagent -g
+      - npm install kinesalite -g
+      - npm install
+  build:
+    commands:
+      - npm test
+      - npm run-script integration-tests
+artifacts:
+  files:
+    - 'lib/*'
+    - index.js

@@ -29,10 +29,13 @@ logagent -c "${CONFIG_DIRECTORY}"/output-aws-kinesis.yml <<< $LOG_MESSAGE &
 # Save PID
 LOGAGENT_PID=`echo $!`
 
+echo "Sleeping 5 seconds due to msFlushRate..."
+sleep 5
+
 # Verify message was sent correctly
 SHARD_ID=$(aws kinesis describe-stream --region us-east-1 --stream-name 'test' --query 'StreamDescription.Shards[0].ShardId' --endpoint-url 'http://localhost:4567')
 SHARD_ID=$(eval echo $SHARD_ID)
-SHARD_ITERATOR=$(aws kinesis get-shard-iterator --region us-east-1 --shard-id $SHARD_ID --shard-iterator-type LATEST --stream-name 'test' --query 'ShardIterator' --endpoint-url 'http://localhost:4567')
+SHARD_ITERATOR=$(aws kinesis get-shard-iterator --region us-east-1 --shard-id $SHARD_ID --shard-iterator-type TRIM_HORIZON --stream-name 'test' --query 'ShardIterator' --endpoint-url 'http://localhost:4567')
 SHARD_ITERATOR=$(eval echo $SHARD_ITERATOR)
 RECORD_DATA=$(aws kinesis get-records --region us-east-1 --shard-iterator $SHARD_ITERATOR --query 'Records[0].Data' --endpoint-url 'http://localhost:4567')
 RECORD_DATA=$(eval echo $RECORD_DATA | base64 --decode)

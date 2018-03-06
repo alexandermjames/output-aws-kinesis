@@ -9,6 +9,7 @@ phases:
   build:
     commands:
       - npm test
+      - npm pack | xargs npm install -g
       - npm run-script integration-tests
 artifacts:
   files:
